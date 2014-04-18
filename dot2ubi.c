@@ -166,6 +166,47 @@ const char *convert_shape (const char *planar)
   return "torus";   /* Use "torus" as the not-found solid. */
 }
 
+/* Replace "\N" in a string with the node name and return a static string. */
+char *replace_N (char *str, char *name)
+{
+  static char *result = NULL;    /* Resulting string */
+  static size_t allocated = 0;   /* Bytes allocated for the above */
+  size_t namelen;                /* Length of replacement string */
+  char *found;                   /* Pointer to first "\N" in the input string */
+  char *resultp;                 /* Pointer into result */
+
+  /* Common case -- no "\N" in the input string. */
+  found = strstr(str, "\\N");
+  if (!found)
+    return str;
+
+  /* Replace each occurrence in turn. */
+  namelen = strlen(name);
+  str = strdup(str);
+  for (found = strstr(str, "\\N"); found != NULL; found = strstr(str, "\\N")) {
+    /* Ensure we have enough memory to do the replacement. */
+    size_t min_len = strlen(str) + namelen - 2 + 1;
+    if (allocated < min_len) {
+      allocated = min_len;
+      result = (char *) realloc(result, allocated);
+    }
+
+    /* Perform the replacement. */
+    strncpy(result, str, found - str);
+    resultp = &result[found - str];
+    *resultp = '\0';
+    strcat(resultp, name);
+    resultp += namelen;
+    strcpy(resultp, found + 2);
+
+    /* Prepare for the next iteration. */
+    free(str);
+    str = strdup(result);
+  }
+  free(str);
+  return result;
+}
+
 /* Draw a node, appropriately mapping its attributes. */
 void draw_node (Agnode_t *node)
 {
@@ -181,15 +222,14 @@ void draw_node (Agnode_t *node)
     setColorScheme(value);
 
   /* Handle fonts and labels. */
-  if (GET_NODE_VALUE("label")) {
-    ubigraph_set_vertex_attribute(node_id, "label", value == NULL ? agnameof(node) : value);
-    if (GET_NODE_VALUE("fontcolor"))
-      ubigraph_set_vertex_attribute(node_id, "fontcolor", convert_color(value));
-    if (GET_NODE_VALUE("fontname"))
-      ubigraph_set_vertex_attribute(node_id, "fontfamily", value);
-    if (GET_NODE_VALUE("fontsize"))
-      ubigraph_set_vertex_attribute(node_id, "fontsize", value);
-  }
+  value = agget(node, "label");
+  ubigraph_set_vertex_attribute(node_id, "label", value == NULL ? agnameof(node) : replace_N(value, agnameof(node)));
+  if (GET_NODE_VALUE("fontcolor"))
+    ubigraph_set_vertex_attribute(node_id, "fontcolor", convert_color(value));
+  if (GET_NODE_VALUE("fontname"))
+    ubigraph_set_vertex_attribute(node_id, "fontfamily", value);
+  if (GET_NODE_VALUE("fontsize"))
+    ubigraph_set_vertex_attribute(node_id, "fontsize", value);
 
   /* Set the color only if the "style" attribute includes "filled". */
   if (GET_NODE_VALUE("style")) {
