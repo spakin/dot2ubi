@@ -12,8 +12,9 @@
 /* Produce a Ubigraph ID from a Graphviz object. */
 #define UBID(N) ((int)AGID(N))
 
-/* Get the value of a node attribute and return true if not NULL or empty. */
+/* Get the value of a node/edge attribute and return true if not NULL or empty. */
 #define GET_NODE_VALUE(KEY) ((value = agget(node, KEY)) != NULL && value[0] != '\0')
+#define GET_EDGE_VALUE(KEY) ((value = agget(edge, KEY)) != NULL && value[0] != '\0')
 
 extern int colorxlate(const char *str, gvcolor_t *color, color_type_t target_type);
 extern void setColorScheme (char *s);
@@ -118,13 +119,14 @@ void initialize_ubigraph (Agraph_t *graph)
   ubigraph_set_vertex_style_attribute(0, "fontfamily", "Times-Roman");   /* Same as dot */
   ubigraph_set_vertex_style_attribute(0, "fontcolor", "#ffffff");   /* dot: black */
   ubigraph_set_vertex_style_attribute(0, "fontsize", "14");   /* Same as dot */
-  if (agisdirected(graph))
+  if (agisdirected(graph)) {
     ubigraph_set_edge_style_attribute(0, "arrow", "true");   /* Same as dot */
+    ubigraph_set_edge_style_attribute(0, "arrow_position", "1.0");   /* Same as dot */
+  }
   ubigraph_set_edge_style_attribute(0, "color", "#ffffff");  /* dot: black */
   ubigraph_set_edge_style_attribute(0, "fontfamily", "Times-Roman");   /* Same as dot */
   ubigraph_set_edge_style_attribute(0, "fontcolor", "#ffffff");   /* dot: black */
   ubigraph_set_edge_style_attribute(0, "fontsize", "14");   /* Same as dot */
-  ubigraph_set_edge_style_attribute(0, "spline", "true");   /* Same as dot */
   initialize_planar_to_solid();
 }
 
@@ -164,7 +166,7 @@ const char *convert_shape (const char *planar)
   return "torus";   /* Use "torus" as the not-found solid. */
 }
 
-/* Draw a node. */
+/* Draw a node, appropriately mapping its attributes. */
 void draw_node (Agnode_t *node)
 {
   int node_id = UBID(node);
@@ -224,6 +226,73 @@ void draw_node (Agnode_t *node)
   }
 }
 
+/* Draw an edge, appropriately mapping its attributes. */
+void draw_edge (Agedge_t *edge)
+{
+  int edge_id = UBID(edge);
+  char *value;
+
+  /* Create a new edge. */
+  ubigraph_new_edge_w_id(edge_id, UBID(agtail(edge)), UBID(aghead(edge)));
+
+  /* Set the dot color scheme. */
+  if (GET_EDGE_VALUE("colorscheme"))
+    setColorScheme(value);
+
+  /* Set the edge color. */
+  if (GET_EDGE_VALUE("color")) {
+    if (!strcmp(value, "invis"))
+      ubigraph_set_edge_attribute(edge_id, "visible", "false");
+    else
+      ubigraph_set_edge_attribute(edge_id, "color", convert_color(value));
+  }
+
+  /* Handle fonts and labels. */
+  if (GET_EDGE_VALUE("label")) {
+    if (GET_EDGE_VALUE("label"))
+      ubigraph_set_edge_attribute(edge_id, "label", value);
+    if (GET_EDGE_VALUE("fontcolor"))
+      ubigraph_set_edge_attribute(edge_id, "fontcolor", convert_color(value));
+    if (GET_EDGE_VALUE("fontname"))
+      ubigraph_set_edge_attribute(edge_id, "fontfamily", value);
+    if (GET_EDGE_VALUE("fontsize"))
+      ubigraph_set_edge_attribute(edge_id, "fontsize", value);
+  }
+
+  /* Set the edge width. */
+  if (GET_EDGE_VALUE("penwidth"))
+    ubigraph_set_edge_attribute(edge_id, "width", value);
+
+  /* Set the edge style. */
+  if (GET_EDGE_VALUE("style")) {
+    if (strstr(value, "solid") != NULL)
+      ubigraph_set_edge_attribute(edge_id, "stroke", "solid");
+    else if (strstr(value, "dashed") != NULL)
+      ubigraph_set_edge_attribute(edge_id, "stroke", "dashed");
+    else if (strstr(value, "dotted") != NULL)
+      ubigraph_set_edge_attribute(edge_id, "stroke", "dotted");
+    else if (strstr(value, "invis") != NULL)
+      ubigraph_set_edge_attribute(edge_id, "stroke", "none");
+  }
+
+  /* Set the edge strength. */
+  if (GET_EDGE_VALUE("weight"))
+    ubigraph_set_edge_attribute(edge_id, "strength", value);
+
+  /* Set the arrowhead size and position. */
+  if (GET_EDGE_VALUE("arrowsize")) {
+    ubigraph_set_edge_attribute(edge_id, "arrow_radius", value);
+    ubigraph_set_edge_attribute(edge_id, "arrow_length", value);
+  }
+  if (GET_EDGE_VALUE("dir")) {
+    /* dir=forward is the default, and Ubigraph doesn't support dir=both. */
+    if (!strcmp(value, "back"))
+      ubigraph_set_edge_attribute(edge_id, "arrow_reverse", "true");
+    else if (!strcmp(value, "none"))
+      ubigraph_set_edge_attribute(edge_id, "arrow", "false");
+  }
+}
+
 int main (int argc, const char *argv[])
 {
   Agraph_t *graph;
@@ -239,6 +308,13 @@ int main (int argc, const char *argv[])
   /* Draw all of the nodes in the entire graph. */
   for (node = agfstnode(graph); node != NULL; node = agnxtnode(graph, node))
     draw_node(node);
+
+  /* Draw all of the edges in the entire graph. */
+  for (node = agfstnode(graph); node != NULL; node = agnxtnode(graph, node)) {
+    Agedge_t *edge;
+    for (edge = agfstout(graph, node); edge != NULL; edge = agnxtout(graph, edge))
+      draw_edge(edge);
+  }
 
   /* Exit cleanly. */
   agclose(graph);
