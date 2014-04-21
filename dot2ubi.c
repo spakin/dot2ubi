@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <graphviz/cgraph.h>
 #include <graphviz/color.h>
 #include <UbigraphAPI.h>

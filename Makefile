@@ -3,6 +3,10 @@
 # By Scott Pakin <scott+d2u@pakin.org> #
 ########################################
 
+# Adjust the following as desired.
+prefix = /usr
+bindir = $(prefix)/bin
+
 # The following should work automatically if you have the
 # prerequisites installed.  If not, edit as necessary.
 CGRAPH_CFLAGS = $(shell pkg-config --cflags libcgraph)
@@ -23,5 +27,11 @@ dot2ubi: dot2ubi.o
 
 dot2ubi.o: dot2ubi.c
 
+install: dot2ubi
+	install -m 0755 -d $(DESTDIR)$(bindir)
+	install -m 0755 dot2ubi $(DESTDIR)$(bindir)/dot2ubi
+
 clean:
 	$(RM) dot2ubi dot2ubi.o
+
+.PHONY: all install clean
