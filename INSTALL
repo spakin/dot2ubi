@@ -1,0 +1,21 @@
+Installation instructions for dot2ubi
+=====================================
+
+Build dot2ubi by running "make".  There is no configure script.
+
+Prerequisites include the GraphViz development files (e.g.,
+libcgraph), the XMLRPC development files (e.g., libxmlrpc), and the
+Ubigraph client (libubigraphclient).  If installed in standard
+locations, the Makefile ought to find these automatically.
+
+Unfortunately, the Ubigraph distribution does not put the client
+library in standard locations but rather under examples/C/.  Either
+move libubigraphclient.a to a standard lib directory or edit the
+UBIGRAPH_LDLIBS line in the Makefile to point to libubigraphclient.a.
+
+Compile with "make".
+
+Install with "make install".  By default, this installs dot2ubi into
+/usr/bin.  To install elsewhere, pass the "prefix" variable to make
+(or edit the Makefile); for example, "make prefix=/usr/local" installs
+dot2ubi into /usr/local/bin.

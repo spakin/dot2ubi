@@ -1,0 +1,18 @@
+This directory contains the 1.0 release of dot2ubi.
+
+dot2ubi plots graphs (as in "edges and vertices", not "pie charts and
+bar charts") with a 3-D layout.  It reads a graph description in
+Graphviz ("dot") format and communicates the graph to a Ubigraph
+server application for rendering.
+
+    Graphviz home page: http://www.graphviz.org/
+    Ubigraph home page: http://ubietylab.net/ubigraph/
+
+Note that the Ubigraph server is free but closed-source software.
+
+Installation instructions appear in the INSTALL file.
+
+Documentation is provided in the form of a Unix man page.
+
+dot2ubi is provided under a BSD license.  See the LICENSE file for the
+complete legal text.

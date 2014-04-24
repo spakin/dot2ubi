@@ -1,0 +1,51 @@
+.TH DOT2UBI 1 "2014-04-23" "v1.0" ""
+.nh
+.SH "NAME"
+dot2ubi \- Render Graphviz files in 3-D using Ubigraph
+.SH "SYNOPSIS"
+dot2ubi [\fIfilename\fR]
+.SH "DESCRIPTION"
+\fBdot2ubi\fR plots graphs (as in ``edges and vertices'', not ``pie charts
+and bar charts'') with a 3-D layout.  It reads a graph description in
+Graphviz (``dot'') format and communicates the graph to a Ubigraph
+server application for rendering.
+.SH "OPTIONS"
+There are no command-line options.  \fBdot2ubi\fR accepts the name of a
+``dot'' file.  If not provided, the program reads from the standard
+input device.
+.SH "NOTES"
+Graphviz and Ubigraph support different features.  \fBdot2ubi\fR tries
+hard to map node and vertex attributes from what makes sense to
+Graphviz into what makes sense to Ubigraph.  For example, planar node
+shapes such as \f(CW\*(C`box\*(C'\fR and \f(CW\*(C`circle\*(C'\fR are mapped to solid node shapes
+such as \f(CW\*(C`cube\*(C'\fR and \f(CW\*(C`sphere\*(C'\fR.
+.PP
+Explicitly specified colors are honored, but the default colors are
+different due to Graphviz rendering atop a white background and
+Ubigraph rendering atop a black background.  Also, Graphviz nodes
+include both border and fill colors while Ubigraph nodes contain only
+fill colors.  \fBdot2ubi\fR draws both nodes and edges in white unless
+otherwise specified.
+.PP
+Both directed and undirected graphs are supported.
+.PP
+All edge stroke styles are supported.
+.PP
+Arrow sizes are supported.  Arrow shapes are ignored.
+.PP
+Ubigraph does not support double-ended arrows (\f(CW\*(C`dir=both\*(C'\fR in
+Graphviz); these are rendered as single-ended arrows.
+.PP
+Ubigraph does not support Graphviz's subgraphs or clusters.  Nodes
+within subgraphs/clusters are drawn.  Only their grouping is ignored.
+.SH "AUTHOR"
+Scott Pakin, \fIscott+dt2ub@pakin.org\fR
+.SH "COPYRIGHT AND LICENSE"
+Copyright 2014 Scott Pakin
+.PP
+This software is released under a \s-1BSD\s0
+license <http://opensource.org/licenses/BSD-2-Clause>.
+.SH "SEE ALSO"
+\fIdot\fR\|(1),
+the Graphviz home page <http://www.graphviz.org/>,
+the Ubigraph home page <http://ubietylab.net/ubigraph/>
