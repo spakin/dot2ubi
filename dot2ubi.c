@@ -265,6 +265,10 @@ void draw_node (Agnode_t *node)
     sprintf(size_str, "%31.5f", size);
     ubigraph_set_vertex_attribute(node_id, "size", size_str);
   }
+
+  /* Honor URLs. */
+  if (GET_NODE_VALUE("URL") || GET_NODE_VALUE("href"))
+    ubigraph_set_vertex_attribute(node_id, "callback_left_doubleclick", value);
 }
 
 /* Draw an edge, appropriately mapping its attributes. */
