@@ -29,7 +29,7 @@ LDLIBS = -g -O2 $(CGRAPH_LDLIBS) $(GVC_LDLIBS) $(UBIGRAPH_LDLIBS) $(XMLRPC_LDLIB
 
 # ---------------------------------------------------------------------------
 
-DISTFILES = dot2ubi.c dot2ubi.1 README INSTALL LICENSE
+DISTFILES = dot2ubi.c dot2ubi.1 README INSTALL LICENSE Makefile
 
 all: dot2ubi
 
